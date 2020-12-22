@@ -5,16 +5,17 @@ import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.activity.ActivityType;
 import org.javacord.api.entity.auditlog.AuditLogActionType;
 import org.javacord.api.entity.auditlog.AuditLogEntry;
+import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.UserStatus;
 
 import java.util.*;
 
 /**
- * Main file of "ThrawnBot", a disord bot created by u/tim07.
- * This file activates all the other listeners available in the com.mischok.thrawnbot package and implements some instant reactions.
+ * Main file of "ThrawnBot", a discord bot created by u/tim07.
+ * This file activates all the other listeners available in the com.tim07.thrawnbot package and implements some instant reactions.
  * @author u/tim07
- * @version 1.0.4
+ * @version 2.0
  */
 
 
@@ -31,6 +32,7 @@ public class ThrawnBot {
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
         api.updateStatus(UserStatus.ONLINE);
         api.updateActivity(ActivityType.PLAYING,"Seventh fleet");
+        api.setMessageCacheSize(10, 60*60);
 
         // Add a listener which answers with "Pong!" if someone writes "ping"
         api.addMessageCreateListener(event -> {
@@ -67,7 +69,7 @@ public class ThrawnBot {
             if (event.getMessageContent().equalsIgnoreCase("%shutdown") && event.getMessageAuthor().isBotOwner()){
                 event.getChannel().sendMessage("Daisy, Daisy...");
                 api.updateStatus(UserStatus.OFFLINE);
-                System.exit(1);
+                System.exit(0);
             }
         });
 
@@ -151,12 +153,51 @@ public class ThrawnBot {
             }));
         });
 
-        // Adds a listener to peform a "Simon says" action while triggered by the bot owner.
+        // Adds a listener to perform a "Simon says" action while triggered by the bot owner.
         api.addMessageCreateListener(event -> {
             if (event.getMessageAuthor().isBotOwner() && event.getMessageContent().startsWith("%say ")){
                 String message = event.getMessageContent().split(" ", 2)[1];
+                event.deleteMessage();
                 event.getChannel().sendMessage(message);
             }
+        });
+
+        Music music = new Music(api);
+        api.addServerVoiceChannelMemberJoinListener(event -> {
+            if(event.getUser().isBotOwner()){
+                event.getChannel().connect().thenAccept(audioConnection -> {
+                    music.setAudioconnection(audioConnection);
+                    music.play("https://youtu.be/xlE8qkogG4g");
+                });
+            }
+        });
+        api.addMessageCreateListener(event -> {
+            if (event.getMessageContent().equals("%disconnect") && event.getMessageAuthor().isBotOwner()){
+                music.disconnect();
+            }
+        });
+
+        api.addMessageCreateListener( event -> {
+            if (event.getMessageContent().contains("This is the way") && !event.getMessageAuthor().isYourself()){
+                event.getChannel().sendMessage("This is the way");
+            }
+        });
+
+        api.addMessageCreateListener(event -> {
+           if (event.getMessageContent().startsWith("%play")){
+               String message = event.getMessageContent().split( " ", 2)[1];
+               Optional<ServerVoiceChannel> channel = event.getMessageAuthor().getConnectedVoiceChannel();
+               if (channel.isPresent()){
+                   if (channel.get().isConnected(api.getClientId())){
+                       music.play(message);
+                   }else{
+                       channel.get().connect().thenAccept(audioConnection -> {
+                           music.setAudioconnection(audioConnection);
+                           music.play(message);
+                       });
+                   }
+               }
+           }
         });
 
         // Adds the listeners outsourced into own files
@@ -167,6 +208,8 @@ public class ThrawnBot {
         api.addListener(new Help());
         api.addListener(new Affirmation());
         api.addListener(new AnimalPic());
+        api.addListener(new Twitter());
+        api.addListener(new ChatStats());
 
         // Print the invite url of your bot
         System.out.println("You can invite the bot by using the following url: " + api.createBotInvite());

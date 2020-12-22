@@ -20,7 +20,7 @@ public class Affirmation implements MessageCreateListener {
     public void onMessageCreate(MessageCreateEvent event) {
         Message message = event.getMessage();
         // Checks if message is meant to be here...
-        if (message.getContent().equals("affirmation")){
+        if (message.getContent().equals("%affirmation")){
             // API request
             JsonObject root;
             try{

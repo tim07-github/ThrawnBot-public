@@ -25,9 +25,9 @@ public class Help implements MessageCreateListener{
         switch (message.getContent()) {
             case "%help":
                 // general help message
-                embedBuilder.setDescription("Folgende Befehle gibt es: \n%wetter [Stadt] \n%wetterbericht [Stadt] [Anzahl der Tage] \n%thrawn \n%astro {marswetter} \n%affirmation \n%wuff \n%miau \n\nF\u00fcr weitere Infos %help [Befehl] in den Chat eingeben.");
+                embedBuilder.setDescription("Folgende Befehle gibt es: \n%wetter [Stadt] \n%wetterbericht [Stadt] [Anzahl der Tage] \n%thrawn \n%astro {marswetter} \n%affirmation \n%wuff \n%miau \n%nachrichten \n%play \n%chatstats [Anzahl der Nachrichten] \n%userstats \n\nF\u00fcr weitere Infos %help [Befehl] in den Chat eingeben.");
                 break;
-                // custom help messages start here
+            // custom help messages start here
             case "%help wetter":
                 embedBuilder.setDescription("Befehl: %wetter [Stadt]\nGibt einen Wetterbericht zum jetzigen Zeitpunkt des gew\u00e4hlten Ortes aus.");
                 break;
@@ -47,8 +47,17 @@ public class Help implements MessageCreateListener{
                 embedBuilder.setDescription("Befehl: %miau\nEin Katzenfoto! :tada:");
                 break;
             case "%help wuff":
-                embedBuilder.setDescription("Befehl: %wuff\nEin Hundfoto! :tada:");
+                embedBuilder.setDescription("Befehl: %wuff\nEin Hundefoto! :tada:");
                 break;
+            case "%help nachrichten":
+                embedBuilder.setDescription("Befehl: %nachrichten\nBBCBweaking wird dich über das Neueste informieren");
+                break;
+            case "%help play":
+                embedBuilder.setDescription("Befehl: %play [yt-link]\nDer Bot joint dich im Voice und spielt das gewünschte Video vor.");
+            case "%help chatstats":
+                embedBuilder.setDescription("Befehl: %chatstats [Anzahl der Nachrichten]\nAuswertungen aller Nachrichten im geschriebenen Kanal");
+            case "%help userstats":
+                embedBuilder.setDescription("Befehl: %userstats\nAuswertungen aller Nachrichten im Server");
             default:
                 return;
         }
