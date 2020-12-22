@@ -11,6 +11,10 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
+/**
+ * This class shall provide us some insight data regarding our server/channel usage
+ * @author u/tim07
+ */
 public class ChatStats implements MessageCreateListener {
 
     /**
@@ -20,7 +24,10 @@ public class ChatStats implements MessageCreateListener {
      */
     @Override
     public void onMessageCreate(MessageCreateEvent event) {
+
         if (event.getMessageContent().startsWith("%chatstats")){
+        // Start of channel stats calculation
+
             int limit = 0;
             try{
                 String limitString = event.getMessageContent().split( " ", 2)[1];
@@ -42,6 +49,7 @@ public class ChatStats implements MessageCreateListener {
                         valueMap.put(author, 1);
                     }
                });
+
                List<Map.Entry<String, Integer>> sortedList = new ArrayList<>(valueMap.entrySet());
                sortedList.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
 
@@ -63,6 +71,8 @@ public class ChatStats implements MessageCreateListener {
 
 
         } else if (event.getMessageContent().equalsIgnoreCase("%userstats")){
+            // Start of user stats calculation
+
             Server server = event.getServer().get();
             List<ServerTextChannel> channels = server.getTextChannels();
             int visibleTextChannels = (int) channels.stream()
@@ -73,7 +83,10 @@ public class ChatStats implements MessageCreateListener {
             Map<ServerTextChannel, Integer> channelstats = new HashMap<>();
             Map<String, Integer> userstats = new HashMap<>();
 
+
+
             for (ServerTextChannel channel : server.getTextChannels()){
+                // Async call to API -> Fetch data and process it
                 channel.getMessages(Integer.MAX_VALUE).thenAccept(messages -> {
                     channelstats.put(channel, messages.size());
                     messages.forEach( message -> {
@@ -85,7 +98,7 @@ public class ChatStats implements MessageCreateListener {
                         }
                     });
                 }).thenAccept(e -> {
-
+                    // Sort and publish data when all channels have been fetched and processed
                     if (channelstats.size() == visibleTextChannels) {
                         List<Map.Entry<ServerTextChannel, Integer>> sortedChannelList = new ArrayList<>(channelstats.entrySet());
                         sortedChannelList.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
@@ -119,9 +132,9 @@ public class ChatStats implements MessageCreateListener {
                             int count = entry.getValue();
                             topChannels.append("**").append(name).append("**").append(": ").append(count).append("\n");
                         }
+
+
                         int messagesServer = channelstats.values().stream().mapToInt(Integer::intValue).sum();
-
-
 
                         EmbedBuilder messageBuilder = new EmbedBuilder()
                                 .setTitle("Stats f\u00FCr " + server.getName())
