@@ -29,7 +29,7 @@ public class Twitter implements MessageCreateListener {
     public void onMessageCreate(MessageCreateEvent event) {
         if (event.getMessageContent().equalsIgnoreCase("%nachrichten")){
             try {
-                String auth = "Bearer AAAAAAAAAAAAAAAAAAAAAEQ7IQEAAAAAYhl%2Bas%2FZrXV5NvHXlnslmNxZaK0%3DQ4e5dN3o8nsCrin0sY16pPHvFfCeH2llIyxmwsk6mRNAISOaRA";
+                String auth = "APIKEY";
 
                 var client = HttpClient.newHttpClient();
 
