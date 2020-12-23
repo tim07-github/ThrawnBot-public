@@ -146,7 +146,7 @@ public class AnimalPic implements MessageCreateListener {
         }
         //String parsing
         StringBuilder inline = new StringBuilder();
-        Scanner sc = new Scanner(url.openStream(), StandardCharsets.UTF_8);
+        Scanner sc = new Scanner(url.openStream(), StandardCharsets.UTF_8.name());
         while(sc.hasNext()) {
             inline.append(sc.nextLine());
         }
