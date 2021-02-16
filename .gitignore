@@ -1,2 +1,5 @@
 /out
 /.idea
+/build
+src/main/resources/META-INF/gradle.properties
+/.gradle

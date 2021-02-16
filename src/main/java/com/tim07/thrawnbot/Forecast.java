@@ -2,10 +2,8 @@ package com.tim07.thrawnbot;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.event.message.MessageCreateEvent;
-import org.javacord.api.listener.message.MessageCreateListener;
 
 
 import java.awt.*;
@@ -21,7 +19,7 @@ import java.time.format.DateTimeFormatter;
  * @see EmbedBuilder
  */
 
-public class Forecast implements MessageCreateListener{
+public class Forecast extends AbstractMessageCreateListener{
 
     /**
      * Listener on message being pushed into the server channel
@@ -29,13 +27,18 @@ public class Forecast implements MessageCreateListener{
      */
     @Override
     public void onMessageCreate(MessageCreateEvent event) {
-        Message message = event.getMessage();
+        super.onMessageCreate(event);
+        if (super.blacklisted){
+            return;
+        }
 
         // Checks if message belongs here
-        if (message.getContent().startsWith("%wetterbericht ") && !message.getContent().equalsIgnoreCase("%wetterbericht ")){
+        if (event.getMessageContent().startsWith("%wetterbericht ") && !event.getMessageContent().equalsIgnoreCase("%wetterbericht ")){
+
+            String apikey = ThrawnBot.property.getProperty("API_KEY_OPENWEATHER");
 
             // Splits content into two
-            String[] content = message.getContent().split(" ", 2);
+            String[] content = event.getMessageContent().split(" ", 2);
 
             if (!(content[1].isEmpty())) {
 
@@ -70,7 +73,7 @@ public class Forecast implements MessageCreateListener{
 
                 // 1st api call - needed for coordinates!
                 try{
-                    String urlString = "https://api.openweathermap.org/data/2.5/find?q=" + location + "&appid=APIKEY&lang=de&units=metric";
+                    String urlString = "https://api.openweathermap.org/data/2.5/find?q=" + location + "&appid="+apikey+"&lang=de&units=metric";
                     rootCoord = JSONHandler.getJSON(urlString);
                 }catch (Exception e){
                     event.getChannel().sendMessage("Fehler mit Nachricht: " + e.getMessage());
@@ -88,7 +91,7 @@ public class Forecast implements MessageCreateListener{
                 latitude = coord.get("lat").getAsString();
 
                 //city
-                city = mainArray.get(0).getAsJsonObject().get("name").toString().replaceAll("\"", "");
+                city = mainArray.get(0).getAsJsonObject().get("name").toString().replace("\"", "");
 
                 try{
                     if (latitude.isEmpty() || longitude.isEmpty() || city.isEmpty()){
@@ -101,9 +104,9 @@ public class Forecast implements MessageCreateListener{
 
                 JsonObject root;
 
-                //fetch actual weather api;
+                //fetch actual weather api
                 try {
-                    String urlString = "https://api.openweathermap.org/data/2.5/onecall?lat=" + latitude + "&lon=" + longitude + "&exclude=hourly,minutely,current&appid=APIKEY&lang=de&units=metric";
+                    String urlString = "https://api.openweathermap.org/data/2.5/onecall?lat=" + latitude + "&lon=" + longitude + "&exclude=hourly,minutely,current&appid=" + apikey + "&lang=de&units=metric";
 
                     // JSON can be used now
                     root = JSONHandler.getJSON(urlString);
@@ -118,9 +121,9 @@ public class Forecast implements MessageCreateListener{
 
                 // JSON parsing begins here
 
-                long timezone_offset;
+                long timeZone;
                 try {
-                    timezone_offset = root.get("timezone_offset").getAsLong();
+                    timeZone = root.get("timezone_offset").getAsLong();
                 }catch(Exception e){
                     event.getChannel().sendMessage("Fehler mit Nachricht: JSON: Zeitzonen Offset konnte nicht ausgelesen werden");
                     return;
@@ -134,10 +137,10 @@ public class Forecast implements MessageCreateListener{
 
                     JsonObject daily = e.getAsJsonObject();
                     try {
-                        //Get date;
+                        //Get date
                         long time = daily.get("dt").getAsLong();
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-                        LocalDateTime date = LocalDateTime.ofEpochSecond(time + timezone_offset, 0, ZoneOffset.UTC);
+                        LocalDateTime date = LocalDateTime.ofEpochSecond(time + timeZone, 0, ZoneOffset.UTC);
                         String outputDate = date.format(formatter);
 
                         //Get Temperature
@@ -148,8 +151,8 @@ public class Forecast implements MessageCreateListener{
                         JsonArray weatherArray = daily.getAsJsonArray("weather");
                         JsonObject weather = weatherArray.get(0).getAsJsonObject();
 
-                        String description = weather.get("description").toString().replaceAll("\"", "");
-                        String icon = weather.get("icon").toString().replaceAll("\"", "");
+                        String description = weather.get("description").toString().replace("\"", "");
+                        String icon = weather.get("icon").toString().replace("\"", "");
                         // Create EmbedBuilder with params
                         EmbedBuilder embedBuilder = new EmbedBuilder()
                                 .setTitle("Wetter vom " + outputDate + " f\u00fcr: " + city)

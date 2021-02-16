@@ -5,8 +5,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.javacord.api.event.message.MessageCreateEvent;
-import org.javacord.api.listener.message.MessageCreateListener;
-
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -20,16 +18,24 @@ import java.net.http.HttpRequest;
  * @author u/tim07
  */
 
-public class Twitter implements MessageCreateListener {
+public class Twitter extends AbstractMessageCreateListener{
+
+    private final Random random = new Random();
     /**
      * Listener on message pushed into the server channel
      * @param event message with extra information
      */
     @Override
     public void onMessageCreate(MessageCreateEvent event) {
+        super.onMessageCreate(event);
+        if (super.blacklisted){
+            return;
+        }
         if (event.getMessageContent().equalsIgnoreCase("%nachrichten")){
             try {
-                String auth = "APIKEY";
+
+
+                String auth = ThrawnBot.property.getProperty("API_KEY_TWITTER");
 
                 var client = HttpClient.newHttpClient();
 
@@ -51,7 +57,6 @@ public class Twitter implements MessageCreateListener {
                     ids.add(temp.get("id").getAsString());
                 }
 
-                Random random = new Random();
                 int index = random.nextInt(ids.size());
                 event.getChannel().sendMessage("https://twitter.com/BBCBweaking/status/" + ids.get(index));
             } catch (Exception e){

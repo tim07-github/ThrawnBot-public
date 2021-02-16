@@ -23,10 +23,8 @@ public class Music {
         playerManager = new DefaultAudioPlayerManager();
         playerManager.registerSourceManager(new YoutubeAudioSourceManager());
         player = playerManager.createPlayer();
-        String os = System.getProperty("os.name");
-        if (os.contains("Windows")) {
-            player.setVolume(30);
-        }
+        player.setVolume(30);
+
 
         // Create an audio source and add it to the audio connection's queue
         source = new LavaPlayerAudioSource(api, player);
@@ -60,7 +58,7 @@ public class Music {
             }
         });
     }
-    public void setAudioconnection(AudioConnection audioconnection){
+    public void setAudioConnectionStandard(AudioConnection audioconnection){
         this.audioConnection = audioconnection;
     }
     public void disconnect(){

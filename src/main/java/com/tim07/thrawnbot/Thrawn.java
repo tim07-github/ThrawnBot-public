@@ -1,10 +1,7 @@
 package com.tim07.thrawnbot;
 
-import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.event.message.MessageCreateEvent;
-import org.javacord.api.listener.message.MessageCreateListener;
-
 import java.awt.*;
 import java.util.Random;
 
@@ -15,7 +12,7 @@ import java.util.Random;
  */
 
 
-public class Thrawn implements MessageCreateListener {
+public class Thrawn extends AbstractMessageCreateListener {
 
     // Thrawn quotes : Modify here!
     String[] quotes = {
@@ -57,7 +54,7 @@ public class Thrawn implements MessageCreateListener {
     "\"The Empire is at war, Captain. We cannot afford the luxury of men whose minds are so limited they cannot adapt to unexpected situations.\"",
     "\"The insanity of men and aliens who have learned the hard way that they can't match me face-to-face. And so they attempt to use my own tactical skill and insight against me. They pretend to walk into my trap, gambling that I'll notice the subtlety of their movements and interpret that as genuine intent. And while I then congratulate myself on my perception they prepare their actual attack.\""};
 
-
+    private final Random random = new Random();
     /**
      * Listener on message being pushed into the server channel
      * @param event message with extra information
@@ -65,11 +62,13 @@ public class Thrawn implements MessageCreateListener {
 
     @Override
     public void onMessageCreate(MessageCreateEvent event) {
-        Message message = event.getMessage();
+        super.onMessageCreate(event);
+        if (super.blacklisted){
+            return;
+        }
         // Checks if message is meant to be here...
-        if (message.getContent().equalsIgnoreCase("%thrawn")){
+        if (event.getMessageContent().equalsIgnoreCase("%thrawn")){
             // Creates random index and sets a quote
-            Random random = new Random();
             int index = random.nextInt(quotes.length);
             String messageString = quotes[index];
             // Send EmbedBuilder into channel
