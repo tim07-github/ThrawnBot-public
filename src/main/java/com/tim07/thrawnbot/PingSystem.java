@@ -62,7 +62,7 @@ public class PingSystem extends AbstractMessageCreateListener{
         if (event.getServer().isPresent() && event.getMessageAuthor().asUser().isPresent()) {
             List<Role> roleList = event.getServer().get().getRolesByNameIgnoreCase(value);
             for (Role role : roleList){
-                if (role.hasUser(event.getMessageAuthor().asUser().get())){
+                if (!role.hasUser(event.getMessageAuthor().asUser().get())){
                     role.addUser(event.getMessageAuthor().asUser().get(), "User has been added to " + role.getName());
                 }
             }
@@ -90,7 +90,7 @@ public class PingSystem extends AbstractMessageCreateListener{
      * @param event {@link MessageCreateEvent} requesting message.
      */
     private void createPing(MessageCreateEvent event){
-        if (event.getMessageAuthor().isRegularUser()){
+        if (!event.getMessageAuthor().isServerAdmin()){
             return;
         }
         String value = event.getMessageContent().split(" ", 2)[1];
@@ -109,15 +109,15 @@ public class PingSystem extends AbstractMessageCreateListener{
      * @param event {@link MessageCreateEvent} requesting message.
      */
     private void removePings(MessageCreateEvent event){
-        if (event.getMessageAuthor().isRegularUser()){
+        if (!event.getMessageAuthor().isServerAdmin()){
             return;
         }
         String value = event.getMessageContent().split(" ", 2)[1];
         if (event.getServer().isPresent()){
-            event.getServer().get().getRolesByNameIgnoreCase(value)
-                    .forEach(role -> role.delete()
-                            .thenCompose(r -> event.getChannel().sendMessage("Role " + value + " has been removed"))
-                    );
+            List<Role> roles = event.getServer().get().getRolesByNameIgnoreCase(value);
+            for (Role role : roles){
+                role.delete().thenCompose(completion -> event.getChannel().sendMessage("Role has been deleted"));
+            }
         }
     }
 }
